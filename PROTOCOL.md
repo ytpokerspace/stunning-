@@ -22,11 +22,9 @@ The receiver must reject missing fields, duplicate fields, unknown glyphs, inval
 
 - Attack: `⚔️🧪[move-slot]🎯[target-slot]`
 - Switch: `🔄🐉[team-slot]`
-- Heal: `💚🎯[self-or-ally-slot]`
+- Heal self: `💚`
 - Guard: `🛡️`
-- Status request: `📊`
-- Pause: `⏸️`
-- Resume: `▶️`
+- Status, pause, and resume glyphs are reserved for a future control layer; the current Python adapter accepts attack, switch, heal, and guard frames only.
 
 A complete example for player 1, sequence 3, move 1 targeting opponent creature 1:
 
