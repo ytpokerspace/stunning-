@@ -32,3 +32,4 @@ jobs:
           print("HTML structure, required controls, and SVG assets validated")
           PY
           node --check /tmp/pokellm-game.js
+          node --test web/game.test.js
