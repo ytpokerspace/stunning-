@@ -149,8 +149,16 @@ class Battle:
             if player.creature.pp_left[action.move] <= 0:
                 raise ValueError("move has no PP")
         elif action.kind == ActionKind.HEAL:
+            move_key = action.move or "heal"
+            if move_key not in player.creature.moves:
+                raise ValueError("unknown healing move")
+            if player.creature.pp_left[move_key] <= 0:
+                raise ValueError("healing move has no PP")
             if player.creature.hp >= player.creature.max_hp:
                 raise ValueError("cannot heal at full HP")
+        elif action.kind == ActionKind.ATTACK:
+            if action.target is not None and not 0 <= action.target < len(self.players[3 - player.slot].team):
+                raise ValueError("attack target is out of range")
         elif action.kind != ActionKind.GUARD:
             raise ValueError("unsupported action")
 
@@ -175,8 +183,16 @@ class Battle:
                 events.append(TurnEvent("switch", slot, str(action.team_index)))
 
         # Remaining actions resolve by current active creature speed, then player slot.
+        # Guard is a defensive stance and is established before either attack,
+        # independent of speed, so a slower defender can still block this turn.
+        for slot in (1, 2):
+            if actions[slot].kind == ActionKind.GUARD:
+                self.players[slot].creature.guarding = True
+                events.append(TurnEvent("guard", slot))
+
         order = sorted(
-            (slot for slot in (1, 2) if actions[slot].kind != ActionKind.SWITCH),
+            (slot for slot in (1, 2)
+             if actions[slot].kind not in (ActionKind.SWITCH, ActionKind.GUARD)),
             key=lambda slot: (-self.players[slot].creature.speed, slot),
         )
         for slot in order:
@@ -190,10 +206,9 @@ class Battle:
                 events.append(TurnEvent("cancelled_fainted", slot))
                 continue
 
-            if action.kind == ActionKind.GUARD:
-                actor.guarding = True
-                events.append(TurnEvent("guard", slot))
-            elif action.kind == ActionKind.HEAL:
+            if action.kind == ActionKind.HEAL:
+                move_key = action.move or "heal"
+                actor.pp_left[move_key] -= 1
                 amount = min((actor.max_hp + 3) // 4, actor.max_hp - actor.hp)
                 actor.hp += amount
                 events.append(TurnEvent("heal", slot, actor.name, amount))
