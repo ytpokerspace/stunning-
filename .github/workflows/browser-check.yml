@@ -31,4 +31,5 @@ jobs:
           assert 'id="attack"' in html and 'id="restart"' in html
           print("HTML structure, required controls, and SVG assets validated")
           PY
-          node --check /tmp/pokellm-game.js\n          node --test web/game.test.js
+          node --check /tmp/pokellm-game.js
+          node --test web/game.test.js
