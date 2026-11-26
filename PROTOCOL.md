@@ -1,3 +1,5 @@
+> **Privacy boundary:** This protocol describes public multiplayer framing only. Do not add founder-exclusive creature identities, moves, stats, or roster details here; the Founder’s Pack remains private to its owners.
+
 # POKÉLLM Message Protocol
 
 ## 1. Message frame
