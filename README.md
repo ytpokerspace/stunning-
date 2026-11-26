@@ -17,6 +17,18 @@ This repository contains the **general game engine and public game materials**: 
 
 The emoji block is a compact trigger, not compiled executable code. An LLM must have the rules in its context to interpret the sequence consistently.
 
+## Runnable reference engine
+
+A deterministic Python rules engine is included in `engine/pokellm.py`. It uses only the Python standard library and owns authoritative battle state, validation, turn order, damage, move uses, guarding, healing, replacement, and win conditions.
+
+Run its tests with:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+GitHub Actions runs the same test suite on pushes and pull requests. The engine is a reference backend; a full emoji chat adapter and hosted relay are separate components.
+
 ## Modes
 
 - Solo: one player versus the LLM.
