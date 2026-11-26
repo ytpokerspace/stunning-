@@ -89,6 +89,20 @@ class BattleTests(unittest.TestCase):
         self.assertTrue(b.finished)
         self.assertEqual(b.winner, 1)
 
+
+    def test_fainted_creature_is_replaced(self):
+        s = public_starters()
+        reserve = Creature("Reserve", Element.WATER, 30, 8, 8, 5,
+                           {"water": Move("Water", Element.WATER, 10, 100, 2)})
+        s["mossling"].hp = 1
+        b = make_battle(p1=[s["emberkit"]], p2=[s["mossling"], reserve], seed=4)
+        b.resolve_turn({
+            1: Action(ActionKind.ATTACK, move="burst"),
+            2: Action(ActionKind.GUARD),
+        })
+        self.assertEqual(b.players[2].active, 1)
+        self.assertTrue(b.players[2].creature.able)
+
     def test_pp_consumed_on_attempt(self):
         b = make_battle()
         before = b.players[1].creature.pp_left["fire"]
