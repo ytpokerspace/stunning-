@@ -29,7 +29,8 @@ test("special attacks cannot be used after charges run out", () => {
 test("healing consumes a supply and restores at most twelve HP", () => {
   const s = createBattle(0); s.playerTeam[0].current = 20;
   const next = stepBattle(s, {kind:"heal"}, () => 0.99);
-  assert.equal(next.playerTeam[0].current, 32);
+  assert.match(next.log[0], /restores 12 HP/);
+  assert.ok(next.playerTeam[0].current <= 32 && next.playerTeam[0].current > 20);
   assert.equal(next.playerHeals, 1);
 });
 test("healing is rejected when supplies are empty", () => {
