@@ -52,11 +52,11 @@ The engine must record the selected variation. Model-generated random choices ar
 3. Validate both actions against the same pre-turn state.
 4. If an action is invalid, reject it without partially applying the turn.
 5. Resolve valid switches first.
-6. Resolve remaining actions by descending speed.
-7. Resolve ties by ascending player slot, then creature slot.
-8. Check accuracy and available PP.
-9. Apply guard, damage, and healing according to the move rules.
-10. Mark creatures at 0 HP as defeated and require a replacement if available.
+6. Activate guard actions before speed-ordered actions, so a slower defender can guard against a faster attacker.
+7. Resolve remaining attacks and healing by descending active-creature speed.
+8. Resolve ties by ascending player slot, then creature slot.
+9. Check accuracy and available PP, then apply damage or healing.
+10. When a creature faints, immediately promote the first able teammate if one exists.
 11. Check whether either team has no usable creatures.
 12. Publish the updated state in emoji-only form.
 
