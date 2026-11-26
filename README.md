@@ -1,62 +1,45 @@
 # POKÉLLM — Emoji Glyph Engine
 
-An LLM-native, turn-based creature-battling game controlled and communicated through emoji glyphs.
+An emoji-driven creature battle project with a Python reference engine, strict emoji protocol, and a playable browser prototype.
 
 ## Public repository boundary
 
-This repository contains the **general game engine and public game materials**: launch block, glyph dictionary, rules, message protocol, examples, and conformance checks.
+This repository contains the general game engine and public game materials. **The private Founder’s Pack is deliberately excluded.** William Gunnell Cox and Nathaniel Baker Rudd keep their customized founder creatures, crown designs, private movesets, special abilities, and personal roster details private. No founder-only creature data or artwork is stored in this public repository.
 
-**The private Founder’s Pack is deliberately excluded.** William Gunnell Cox and Nathaniel Baker Rudd keep their customized founder creatures, private movesets, special abilities, and personal roster details for their own use. No founder-only creature data is stored here, and public examples use only the standard starter roster.
+## Play the browser prototype
 
-## Start
+Open [web/index.html](web/index.html) in a modern browser. The mobile-friendly prototype includes three original public starter creatures, large touch controls, health displays, and solo battles with attack, guard, heal, and special actions.
+
+The browser prototype is local single-player versus a simple computer opponent. It is not yet remote multiplayer, a hosted LLM connector, or a complete collection/adventure game. GitHub Pages deployment is configured in `.github/workflows/pages.yml`; publishing requires GitHub Pages to be enabled for the repository.
+
+## LLM / emoji mode
 
 1. Load `GLYPH-SPEC.md`, `PROTOCOL.md`, and `RULES.md` into an LLM conversation.
 2. Paste the complete contents of `POKELLM.emoji`.
 3. Send the launch sequence: `🎮🧬📜🔣🧭🌍⚔️🐉🧑‍🤝‍🧑🔗🔥💧🌿❤️⚡🛡️🏃🎯🔄💚🔢🔒⏳⚖️🎲📨🔁🚫🗣️🔤📤▶️`.
-4. Follow the emoji-only starter selection prompt.
 
-The emoji block is a compact trigger, not compiled executable code. An LLM must have the rules in its context to interpret the sequence consistently.
+The emoji block is a trigger, not executable code by itself. An LLM must have the rules in context to interpret the sequence consistently.
 
-## Runnable reference engine
+## Python reference engine
 
-A deterministic Python rules engine is included in `engine/pokellm.py`. The strict emoji adapter in `engine/emoji_protocol.py` parses player frames, rejects malformed or repeated messages, waits for both players, resolves the turn, and emits an emoji-only state snapshot.
+`engine/pokellm.py` is the authoritative Python battle rules reference. `engine/emoji_protocol.py` parses strict emoji frames, validates submissions, waits for both players, resolves turns, and emits emoji-only state snapshots.
 
-The engine uses only the Python standard library. It owns authoritative battle state, validation, turn order, damage, move uses, guarding, healing, automatic replacement, and win conditions.
-
-Run all tests with:
+Run tests with:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-GitHub Actions runs the same suite on pushes and pull requests. The engine and adapter are a local reference implementation; a hosted relay and mobile interface are separate components.
-## Modes
+GitHub Actions checks the Python suite and validates browser JavaScript syntax and SVG assets.
 
-- Solo: one player versus the LLM.
-- Pass-and-play: multiple players share one conversation and take turns.
-- Remote: separate devices require a shared chat or an external message relay. This repository specifies the protocol but does not host a relay server.
+## Current limits
 
-## Gameplay contract
-
-- Player commands, player-to-player messages, and gameplay output use emoji glyphs only.
-- Both players' actions are collected before a turn resolves.
-- Invalid actions do not partially change game state.
-- The game publishes the updated state after each turn.
-- No real-money wagering or redeemable tokens. Virtual counters have no monetary value.
-- Public documentation does not disclose founder-exclusive content.
-
-## Repository map
-
-- `POKELLM.emoji` — compact emoji-only launch block.
-- `GLYPH-SPEC.md` — glyph vocabulary, public starters, and battle math.
-- `PROTOCOL.md` — message framing, validation, and multiplayer constraints.
-- `RULES.md` — consolidated battle rules and turn resolution.
-- `EXAMPLES.md` — public emoji-only interaction examples.
-- `CONFORMANCE.md` — compatibility checklist and test cases.
-
-## Status
-
-Specification-first prototype. LLM interpretation can vary; conformance checks are provided to expose inconsistencies. No hosted multiplayer backend is included.
+- Browser prototype: solo battle versus a basic local opponent.
+- Python adapter: local two-player turn collection; no network relay.
+- Remote play across devices: not implemented.
+- Persistent accounts, saved teams, creature capture/evolution, items, maps, audio, and hosted services: not implemented.
+- Browser rules are a standalone JavaScript implementation; full automated parity testing against the Python reference remains future work.
+- No real-money wagering or redeemable tokens.
 
 ## License
 
