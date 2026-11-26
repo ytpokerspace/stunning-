@@ -8,7 +8,7 @@ This repository contains the general game engine and public game materials. **Th
 
 ## Play the browser prototype
 
-Open [web/index.html](web/index.html) in a modern browser. The mobile-friendly prototype includes three original public starter creatures, large touch controls, health displays, and solo battles with attack, guard, heal, and special actions.
+Open [web/index.html](web/index.html) in a modern browser. The mobile-friendly prototype includes three original public starter creatures, three-creature teams, large touch controls, health displays, switching, attack, guard, limited special energy, and limited healing supplies. Defeated creatures are automatically replaced when teammates remain.
 
 The browser prototype is local single-player versus a simple computer opponent. It is not yet remote multiplayer, a hosted LLM connector, or a complete collection/adventure game. GitHub Pages deployment is configured in `.github/workflows/pages.yml`; publishing requires GitHub Pages to be enabled for the repository.
 
@@ -34,11 +34,11 @@ GitHub Actions checks the Python suite and validates browser JavaScript syntax a
 
 ## Current limits
 
-- Browser prototype: solo battle versus a basic local opponent.
+- Browser prototype: solo three-creature team battle versus a basic local opponent.
 - Python adapter: local two-player turn collection; no network relay.
 - Remote play across devices: not implemented.
 - Persistent accounts, saved teams, creature capture/evolution, items, maps, audio, and hosted services: not implemented.
-- Browser rules are a standalone JavaScript implementation; full automated parity testing against the Python reference remains future work.
+- Browser rules are a standalone JavaScript implementation with Node unit tests; full automated parity testing against the Python reference remains future work.
 - No real-money wagering or redeemable tokens.
 
 ## License
