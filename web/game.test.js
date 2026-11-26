@@ -51,3 +51,20 @@ test("completed battles ignore later actions", () => {
   const s = createBattle(0); s.done = true; s.winner = "player";
   assert.equal(stepBattle(s, {kind:"attack"}).winner, "player");
 });
+
+test("automatically brings in the next rival after a knockout", () => {
+  const s = createBattle(0); s.rivalTeam[0].current = 1;
+  const next = stepBattle(s, {kind:"attack"}, () => 0.99);
+  assert.equal(next.rivalActive, 1);
+  assert.equal(next.rivalTeam[0].current, 0);
+});
+test("automatically brings in the next teammate after a knockout", () => {
+  const s = createBattle(0); s.playerTeam[0].current = 1;
+  const next = stepBattle(s, {kind:"guard"}, () => 0.99);
+  assert.equal(next.playerActive, 1);
+  assert.equal(next.playerTeam[0].current, 0);
+});
+test("rejects switching to a fainted teammate", () => {
+  const s = createBattle(0); s.playerTeam[2].current = 0;
+  assert.throws(() => stepBattle(s, {kind:"switch", index:2}), RangeError);
+});
