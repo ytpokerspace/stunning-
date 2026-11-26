@@ -240,6 +240,15 @@ class Battle:
                 events.append(TurnEvent("damage", slot, target.name, damage))
                 if target.fainted:
                     events.append(TurnEvent("faint", 3 - slot, target.name))
+                    # Promote the first available teammate immediately so the
+                    # next action in this same turn sees the correct active slot.
+                    replacement = next(
+                        (i for i, creature in enumerate(opponent.team) if creature.able),
+                        None,
+                    )
+                    if replacement is not None:
+                        opponent.active = replacement
+                        events.append(TurnEvent("auto_switch", opponent.slot, str(replacement)))
 
         for slot in (1, 2):
             player = self.players[slot]
