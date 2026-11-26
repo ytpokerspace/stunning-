@@ -148,8 +148,12 @@ class Battle:
                 raise ValueError("unknown move")
             if player.creature.pp_left[action.move] <= 0:
                 raise ValueError("move has no PP")
-            if action.target is not None and not 0 <= action.target < len(self.players[3 - player.slot].team):
-                raise ValueError("attack target is out of range")
+            if action.target is not None:
+                target_team = self.players[3 - player.slot].team
+                if not 0 <= action.target < len(target_team):
+                    raise ValueError("attack target is out of range")
+                if not target_team[action.target].able:
+                    raise ValueError("attack target has fainted")
         elif action.kind == ActionKind.HEAL:
             move_key = action.move or "heal"
             if move_key not in player.creature.moves:
