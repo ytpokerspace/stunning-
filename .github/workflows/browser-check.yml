@@ -1,0 +1,34 @@
+name: Browser game checks
+on:
+  push:
+    paths:
+      - "web/**"
+      - ".github/workflows/browser-check.yml"
+  pull_request:
+    paths:
+      - "web/**"
+      - ".github/workflows/browser-check.yml"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate HTML assets and JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import xml.etree.ElementTree as ET
+          html = Path("web/index.html").read_text()
+          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+          assert scripts, "No inline game script found"
+          Path("/tmp/pokellm-game.js").write_text("\n".join(scripts))
+          for svg in Path("web/assets").glob("*.svg"):
+              ET.parse(svg)
+          assert 'id="attack"' in html and 'id="restart"' in html
+          print("HTML structure, required controls, and SVG assets validated")
+          PY
+          node --check /tmp/pokellm-game.js
