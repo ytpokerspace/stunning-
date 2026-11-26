@@ -104,11 +104,12 @@ To avoid ambiguity, the engine must record the random roll and all intermediate 
 - Each player submits exactly one action per turn.
 - Collect all active players' actions before resolving any.
 - Validate every action against the same pre-turn state.
-- If any action is invalid, reject that action and request a corrected emoji frame; do not partially resolve the turn.
-- Valid switches resolve before attacks.
-- Remaining actions resolve by descending speed. Ties resolve by ascending player slot, then ascending creature slot.
-- Resolve accuracy, damage, healing, fainting, and automatic replacement in that order.
-- If a creature faints, it cannot act later in the same turn.
+- If any action is invalid, reject it and request a corrected emoji frame; do not partially resolve the turn.
+- Valid switches resolve first.
+- Guard actions activate before speed-ordered attacks and healing, so a slower defender can guard in the same turn.
+- Remaining attacks and healing resolve by descending speed. Ties resolve by ascending player slot, then ascending creature slot.
+- Check accuracy and PP before applying a move.
+- When a creature faints, immediately promote the first able teammate if one exists.
 - If a player's team has no able creatures, that player loses.
 - A draw occurs if all remaining teams are unable to continue after the same resolution cycle.
 
