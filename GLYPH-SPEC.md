@@ -39,6 +39,7 @@ This specification is the meaning assigned to the launch sequence. The launch se
 | 🛡️ | Defense |
 | 🏃 | Speed |
 | 🎯 | Selected target |
+| ➗ | Current value divided by maximum value in a state display |
 | 🔄 | Switch active creature |
 | 💚 | Heal |
 | 🧪 | Move / ability |
