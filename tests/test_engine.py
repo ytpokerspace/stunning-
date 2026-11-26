@@ -62,16 +62,10 @@ class BattleTests(unittest.TestCase):
             1: Action(ActionKind.ATTACK, move="fire"),
             2: Action(ActionKind.GUARD),
         })
-        plain = make_battle(seed=1)
-        plain_events = plain.resolve_turn({
-            1: Action(ActionKind.ATTACK, move="fire"),
-            2: Action(ActionKind.HEAL, move="heal"),
-        }) if False else []
         guarded_damage = next(e.amount for e in guarded_events if e.code == "damage")
         self.assertTrue(any(e.code == "guard" for e in guarded_events))
-        self.assertGreater(guarded_damage, 0)
-        # Emberkit is faster: this assertion verifies guard is active before its hit.
-        self.assertLess(b.players[2].creature.hp, 46)
+        # Seed 1 gives an unguarded 65 damage; the guard halves it to 32.
+        self.assertEqual(guarded_damage, 32)
         self.assertFalse(b.players[2].creature.guarding)
 
     def test_heal_is_capped(self):
