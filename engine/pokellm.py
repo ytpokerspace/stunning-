@@ -148,6 +148,8 @@ class Battle:
                 raise ValueError("unknown move")
             if player.creature.pp_left[action.move] <= 0:
                 raise ValueError("move has no PP")
+            if action.target is not None and not 0 <= action.target < len(self.players[3 - player.slot].team):
+                raise ValueError("attack target is out of range")
         elif action.kind == ActionKind.HEAL:
             move_key = action.move or "heal"
             if move_key not in player.creature.moves:
@@ -156,9 +158,6 @@ class Battle:
                 raise ValueError("healing move has no PP")
             if player.creature.hp >= player.creature.max_hp:
                 raise ValueError("cannot heal at full HP")
-        elif action.kind == ActionKind.ATTACK:
-            if action.target is not None and not 0 <= action.target < len(self.players[3 - player.slot].team):
-                raise ValueError("attack target is out of range")
         elif action.kind != ActionKind.GUARD:
             raise ValueError("unsupported action")
 
