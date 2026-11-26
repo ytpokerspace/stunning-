@@ -1,3 +1,5 @@
+> **Public examples only:** These examples use the standard public roster. The private Founder’s Pack and William Gunnell Cox and Nathaniel Baker Rudd’s customized creatures are deliberately excluded.
+
 # POKÉLLM Examples
 
 These examples show the intended emoji-only gameplay surface. They are protocol examples, not proof that every LLM will parse them identically.
