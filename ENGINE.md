@@ -1,6 +1,6 @@
 # Runnable Engine
 
-The public specification now has a deterministic Python reference engine.
+The public specification includes a deterministic Python rules engine and a strict emoji command adapter.
 
 ## Requirements
 
@@ -13,8 +13,19 @@ The public specification now has a deterministic Python reference engine.
 python -m unittest discover -s tests -v
 ```
 
+## Emoji adapter
+
+`engine/emoji_protocol.py` accepts complete frames such as:
+
+```text
+📨🆔1️⃣🔢1️⃣🎯⚔️🧪1️⃣🎯1️⃣✅
+📨🆔2️⃣🔢1️⃣🎯🛡️✅
+```
+
+Create an `EmojiSession` with a `Battle`, then pass each player's frame to `session.submit(frame)`. The first valid submission receives an emoji acknowledgement and waiting marker. Once both players have submitted, the session resolves the turn and returns an emoji-only state snapshot. Invalid, stale, duplicate, or malformed frames return `🚫❓`.
+
 ## Integration boundary
 
-The Python engine owns authoritative game state, validation, turn order, damage, PP, and win conditions. An LLM-facing adapter should translate emoji frames into `Action` values, call `Battle.resolve_turn()`, and translate returned events/state back into emoji. Do not ask the LLM to independently calculate competitive outcomes.
+The Python engine owns authoritative game state, validation, turn order, damage, PP, guard, healing, replacement, and win conditions. The adapter translates emoji frames into engine actions and renders the result. An LLM can serve as a conversational front end, but it should not independently calculate competitive outcomes.
 
-The engine is an initial reference implementation, not a hosted multiplayer server or mobile app. The public baseline roster is included; the private Founder’s Pack is not.
+This is a local reference implementation, not a hosted multiplayer server or mobile app. Remote devices still need a shared chat or an external relay. The public baseline roster is included; the private Founder’s Pack is not.
