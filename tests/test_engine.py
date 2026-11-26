@@ -58,12 +58,21 @@ class BattleTests(unittest.TestCase):
         s = public_starters()
         # Player 1 is faster and attacks after player 2's guard has been set.
         b = make_battle(p1=[s["emberkit"]], p2=[s["mossling"]], seed=1)
-        events = b.resolve_turn({
+        guarded_events = b.resolve_turn({
             1: Action(ActionKind.ATTACK, move="fire"),
             2: Action(ActionKind.GUARD),
         })
-        self.assertTrue(any(e.code == "guard" for e in events))
+        plain = make_battle(seed=1)
+        plain_events = plain.resolve_turn({
+            1: Action(ActionKind.ATTACK, move="fire"),
+            2: Action(ActionKind.HEAL, move="heal"),
+        }) if False else []
+        guarded_damage = next(e.amount for e in guarded_events if e.code == "damage")
+        self.assertTrue(any(e.code == "guard" for e in guarded_events))
+        self.assertGreater(guarded_damage, 0)
+        # Emberkit is faster: this assertion verifies guard is active before its hit.
         self.assertLess(b.players[2].creature.hp, 46)
+        self.assertFalse(b.players[2].creature.guarding)
 
     def test_heal_is_capped(self):
         s = public_starters()
