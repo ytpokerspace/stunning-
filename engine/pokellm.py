@@ -146,6 +146,8 @@ class Battle:
         elif action.kind == ActionKind.ATTACK:
             if action.move not in player.creature.moves:
                 raise ValueError("unknown move")
+            if player.creature.moves[action.move].power <= 0:
+                raise ValueError("selected move is not a damaging attack")
             if player.creature.pp_left[action.move] <= 0:
                 raise ValueError("move has no PP")
             if action.target is not None:
