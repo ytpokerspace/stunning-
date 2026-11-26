@@ -1,3 +1,5 @@
+> **Public-content boundary:** This specification covers public game mechanics only. The private Founder’s Pack, including William Gunnell Cox and Nathaniel Baker Rudd’s customized creatures, movesets, stats, and abilities, is intentionally excluded.
+
 # POKÉLLM Glyph Specification
 
 ## 1. Operating contract
