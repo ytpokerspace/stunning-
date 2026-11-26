@@ -45,7 +45,7 @@
   function replaceFainted(team, index) {
     if (team[index].current > 0) return { index, changed: false };
     const next = livingIndex(team, -1);
-    return { index: next, changed: next !== -1 };
+    return { index: next === -1 ? index : next, changed: next !== -1 && next !== index };
   }
 
   function finish(state) {
