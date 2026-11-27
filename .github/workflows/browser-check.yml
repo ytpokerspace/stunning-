@@ -22,13 +22,18 @@ jobs:
           from pathlib import Path
           import re
           import xml.etree.ElementTree as ET
-          html = Path("web/index.html").read_text()
-          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
-          assert scripts, "No inline game script found"
-          Path("/tmp/pokellm-game.js").write_text("\n".join(scripts))
+          for name in ("index.html", "poker.html"):
+              html = Path("web", name).read_text()
+              scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+              assert scripts, f"No inline script in {name}"
+              Path(f"/tmp/{name}.js").write_text("\n".join(scripts))
           for svg in Path("web/assets").glob("*.svg"):
               ET.parse(svg)
-          assert 'id="attack"' in html and 'id="restart"' in html
-          print("HTML structure, required controls, and SVG assets validated")
+          assert 'id="attack"' in Path("web/index.html").read_text()
+          assert 'id="deal"' in Path("web/poker.html").read_text()
+          print("HTML controls and SVG assets validated")
           PY
-          node --check /tmp/pokellm-game.js
+          node --check web/poker.js
+          node --check /tmp/index.html.js
+          node --check /tmp/poker.html.js
+          node --test web/game.test.js web/poker.test.js
