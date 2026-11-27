@@ -22,7 +22,7 @@ function validateState(state){
   if(!Number.isSafeInteger(state.coins)||state.coins<0||!Number.isSafeInteger(state.experience)||state.experience<0)throw new SaveError("Coins and experience must be non-negative whole numbers.","INVALID_STATE");
   if(state.completed.some(id=>typeof id!=="string"||!QUEST_IDS.has(id))||new Set(state.completed).size!==state.completed.length)throw new SaveError("Save contains an unknown or repeated quest.","INVALID_STATE");
   if(state.unlocked.some(id=>typeof id!=="string"||!AREA_IDS.has(id))||new Set(state.unlocked).size!==state.unlocked.length||!state.unlocked.includes("whisperwood"))throw new SaveError("Save contains invalid area unlocks.","INVALID_STATE");
-  if(state.completed.length>state.unlocked.length-1)throw new SaveError("Quest progress and unlocked areas do not match.","INVALID_STATE");
+  const orderedAreas=["whisperwood","silverstream","archive"];\n  const expectedAreaCount=Math.min(state.completed.length+1,orderedAreas.length);\n  if(state.unlocked.length!==expectedAreaCount||state.unlocked.some((id,index)=>id!==orderedAreas[index]))throw new SaveError("Quest progress and unlocked areas do not match.","INVALID_STATE");\n  const orderedQuests=["lost-map","river-lights","quiet-ruins"];\n  if(state.completed.some((id,index)=>id!==orderedQuests[index]))throw new SaveError("Quest completion order is invalid.","INVALID_STATE");
   if(state.log.length>MAX_LOG_ENTRIES||state.log.some(line=>typeof line!=="string"||line.length>2000))throw new SaveError("Adventure journal is invalid or too large.","INVALID_STATE");
   if(state.activeQuest!==null&&typeof state.activeQuest!=="string")throw new SaveError("Active quest value is invalid.","INVALID_STATE");
   return {
