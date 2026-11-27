@@ -35,5 +35,6 @@ jobs:
           print("HTML assets and SVG files validated")
           PY
           node --check web/adventure.js
+          node --check web/adventure-save.js
           node --check /tmp/adventure.html.js
           node --test web/*.test.js
