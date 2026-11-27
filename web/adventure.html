@@ -39,16 +39,14 @@ a{color:#b9dcff}footer{text-align:center;color:var(--muted);padding:18px}
 </section>
 <section class="panel" aria-labelledby="save-heading">
 <h2 id="save-heading">💾 Save your adventure</h2>
-<p class="muted">Progress saves on this device after each completed quest. Export a backup if you want to move it to another browser or device.</p>
+<p class="muted">Your adventure is stored in a PNG image cartridge. Save the image to keep your progress, then load that same image to continue on another compatible device.</p>
 <p id="save-status" role="status" aria-live="polite">Checking saved progress…</p>
 <div class="save-actions">
-<button id="save-now" type="button">💾 Save progress now</button>
-<button id="restore" type="button">↩️ Restore saved progress</button>
-<button id="export" type="button">📤 Prepare backup text</button>
-<button id="import" type="button">📥 Import backup text</button>
+<button id="save-now" type="button">🖼️ Save PNG game cartridge</button>
+<button id="load-button" type="button">📂 Load PNG game cartridge</button>
 </div>
-<label for="backup" class="muted">Backup text — copy it somewhere safe, or paste a previous backup here:</label>
-<textarea id="backup" spellcheck="false" autocomplete="off"></textarea>
+<input id="cartridge-file" type="file" accept="image/png,.png" hidden>
+<p class="muted">The image is the save file. Keep it somewhere safe. Loading a cartridge replaces the current in-memory adventure.</p>
 </section>
 <section class="panel" aria-labelledby="map-heading"><h2 id="map-heading">🌍 World map</h2><div id="map"></div></section>
 <section class="panel" aria-labelledby="quest-heading"><h2 id="quest-heading">📜 Available quests</h2><div id="quests"></div></section>
@@ -57,24 +55,34 @@ a{color:#b9dcff}footer{text-align:center;color:var(--muted);padding:18px}
 </main>
 <script src="adventure.js"></script>
 <script src="adventure-save.js"></script>
+<script src="pixel-cartridge.js"></script>
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const storage=(()=>{try{return window.localStorage}catch(_){return null}})();
-const fresh=PokellmAdventure.initialState();
-let state=fresh;
+let state=PokellmAdventure.initialState();
+let saveSequence=0;
 function setStatus(message){$("save-status").textContent=message}
-function loadSaved(){
- if(!storage){setStatus("Device storage is unavailable. You can still export a backup.");return}
- const result=PokellmAdventureSave.load(storage);
- if(result.status==="loaded"){state=result.state;setStatus("Saved progress restored on this device.");}
- else if(result.status==="missing"){setStatus("No saved adventure yet. Your new progress will save after each quest.");}
- else{setStatus("A saved file could not be read ("+result.error.code+"). Your current adventure is safe; you can import a backup.");}
+async function saveCartridge(){
+ try{
+  const png=await PokellmPixelCartridge.encode(state,{sequence:++saveSequence});
+  const blob=new Blob([png],{type:"image/png"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;link.download="pokellm-cartridge-"+saveSequence+".png";
+  document.body.append(link);link.click();link.remove();
+  URL.revokeObjectURL(url);
+  setStatus("PNG cartridge created. Keep the downloaded image to preserve this adventure.");
+ }catch(error){setStatus("Cartridge save failed: "+error.message)}
 }
-function saveProgress(){
- if(!storage){setStatus("Save unavailable: this browser does not allow local storage.");return false}
- try{PokellmAdventureSave.save(state,storage);setStatus("Progress saved on this device.");return true}
- catch(error){setStatus("Save failed: "+error.message);return false}
+async function loadCartridge(file){
+ try{
+  if(!file)throw new Error("Choose a PNG cartridge first.");
+  const result=await PokellmPixelCartridge.decode(new Uint8Array(await file.arrayBuffer()));
+  const validated=PokellmAdventureSave.validateState(result.state);
+  state=validated;saveSequence=result.sequence;
+  setStatus("Cartridge loaded and verified. Your adventure is ready.");
+  render();
+ }catch(error){setStatus("Cartridge could not be loaded: "+error.message)}
 }
 function render(){
  $("coins").textContent="🪙 "+state.coins+" coins";
@@ -82,50 +90,27 @@ function render(){
  $("done").textContent="📜 "+state.completed.length+" quests complete";
  $("map").replaceChildren(...PokellmAdventure.AREAS.map(area=>{
   const item=document.createElement("span");item.className="area";
-  item.textContent=area.name+(state.unlocked.includes(area.id)?" · Unlocked":" · 🔒 Locked");
-  return item;
+  item.textContent=area.name+(state.unlocked.includes(area.id)?" · Unlocked":" · 🔒 Locked");return item;
  }));
  $("quests").replaceChildren();
  const quests=PokellmAdventure.availableQuests(state);
- if(!quests.length){$("quests").textContent="All current quests are complete. More adventures can be added.";return}
+ if(!quests.length){$("quests").textContent="All current quests are complete. More adventures can be added.";$("log").textContent=state.log.slice(-12).join("\n");return}
  for(const quest of quests){
-  const article=document.createElement("article");
-  const heading=document.createElement("h3");heading.textContent=quest.title+" · "+quest.area;
-  const description=document.createElement("p");description.textContent=quest.task;
-  const choices=document.createElement("div");choices.className="choice-list";
-  article.append(heading,description,choices);
+  const article=document.createElement("article"),heading=document.createElement("h3"),description=document.createElement("p"),choices=document.createElement("div");
+  heading.textContent=quest.title+" · "+quest.area;description.textContent=quest.task;choices.className="choice-list";article.append(heading,description,choices);
   quest.choices.forEach((choice,index)=>{
-   const button=document.createElement("button");
-   button.type="button";
-   button.textContent=choice.label+" · Reward: "+choice.reward+" coins";
-   button.addEventListener("click",()=>{
-    try{state=PokellmAdventure.choose(state,quest.id,index);saveProgress();render();}
-    catch(error){setStatus("Quest could not be completed: "+error.message)}
-   });
+   const button=document.createElement("button");button.type="button";button.textContent=choice.label+" · Reward: "+choice.reward+" coins";
+   button.addEventListener("click",()=>{try{state=PokellmAdventure.choose(state,quest.id,index);setStatus("Progress changed. Save a new PNG cartridge to keep it.");render()}catch(error){setStatus("Quest could not be completed: "+error.message)}});
    choices.append(button);
   });
   $("quests").append(article);
  }
  $("log").textContent=state.log.slice(-12).join("\n");
 }
-$("save-now").addEventListener("click",saveProgress);
-$("restore").addEventListener("click",()=>{
- if(!storage){setStatus("Restore unavailable: device storage cannot be accessed.");return}
- const result=PokellmAdventureSave.load(storage);
- if(result.status==="loaded"){state=result.state;setStatus("Saved progress restored.");render();}
- else if(result.status==="missing"){setStatus("There is no saved progress on this device.");}
- else{setStatus("Restore failed: "+result.error.message);}
-});
-$("export").addEventListener("click",()=>{
- try{$("backup").value=PokellmAdventureSave.exportSave(state);$("backup").focus();$("backup").select();setStatus("Backup text prepared. Copy it and keep it somewhere safe.");}
- catch(error){setStatus("Backup could not be prepared: "+error.message)}
-});
-$("import").addEventListener("click",()=>{
- if(!storage){setStatus("Import unavailable: device storage cannot be accessed.");return}
- try{state=PokellmAdventureSave.importSave($("backup").value,storage);setStatus("Backup imported and saved on this device.");render();}
- catch(error){setStatus("Import failed: "+error.message)}
-});
-loadSaved();
+$("save-now").addEventListener("click",saveCartridge);
+$("load-button").addEventListener("click",()=>$("cartridge-file").click());
+$("cartridge-file").addEventListener("change",event=>loadCartridge(event.target.files&&event.target.files[0]));
+setStatus("New adventure ready. Save a PNG cartridge after making progress.");
 render();
 </script>
 </body>
