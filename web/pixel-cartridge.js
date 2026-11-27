@@ -24,7 +24,6 @@ function chunk(type,data){
 function makeHeader(width,height,payload,sequence){
  const h=new Uint8Array(HEADER_SIZE);h.set(MAGIC,0);h.set(u16(VERSION),8);h.set(u16(0),10);
  h.set(u32(width),12);h.set(u32(height),16);h.set(u32(payload.length),20);h.set(u32(sequence>>>0),24);
- h.set(u32(crc32(payload)),28-4); // payload CRC at byte 24? overwritten below with explicit layout
  // Header layout: magic[0..7], version[8..9], flags[10..11], width[12..15], height[16..19], payloadLength[20..23], sequence[24..27], payloadCRC[28..31]
  h.set(u32(sequence>>>0),24);h.set(u32(crc32(payload)),28);
  return h;
