@@ -26,11 +26,9 @@ test("rejects a PNG with a damaged chunk checksum",async()=>{
  const png=await C.encode(sample);png[png.length-5]^=1;
  await assert.rejects(()=>C.decode(png),e=>e.code==="PNG_CHECKSUM");
 });
-test("rejects a non-cartridge PNG",async()=>{
+test("rejects PNG data without a complete cartridge structure",async()=>{
  const png=await C.encode(sample);
- // Alter the first pixel payload magic and repair the IDAT is intentionally not attempted.
- const bad=await C.encode({unrelated:true});
- await assert.rejects(()=>C.decode(bad.slice(0,8)),e=>e.code==="INVALID_PNG");
+ await assert.rejects(()=>C.decode(png.slice(0,24)),e=>e.code==="INVALID_PNG");
 });
 test("rejects arrays as top-level game state",async()=>{
  await assert.rejects(()=>C.encode([1,2]),e=>e.code==="INVALID_STATE");
