@@ -8,5 +8,7 @@ const AREAS=[{id:"whisperwood",name:"🌲 Whisperwood",unlock:0,quest:"lost-map"
 function initialState(){return {completed:[],coins:0,experience:0,unlocked:["whisperwood"],log:["Your adventure begins at Whisperwood."],activeQuest:null}}
 function availableQuests(s){return QUESTS.filter(q=>!s.completed.includes(q.id)&&AREAS.find(a=>a.quest===q.id&&s.unlocked.includes(a.id)))}
 function choose(s,id,index){const q=QUESTS.find(x=>x.id===id);if(!q||s.completed.includes(id)||!AREAS.some(a=>a.quest===id&&s.unlocked.includes(a.id)))throw new Error("Quest is unavailable.");const option=q.choices[index];if(!option)throw new RangeError("Unknown quest choice.");const n={...s,completed:s.completed.concat(id),coins:s.coins+option.reward,experience:s.experience+10,log:s.log.concat(q.title+": "+option.success+" (+"+option.reward+" coins, +10 XP)")};const next=AREAS.find(a=>a.unlock===n.completed.length);if(next&&!n.unlocked.includes(next.id)){n.unlocked=n.unlocked.concat(next.id);n.log=n.log.concat("Unlocked "+next.name+"!")}return n}
-return root.PokellmAdventure={QUESTS,AREAS,initialState,availableQuests,choose};
+const api={QUESTS,AREAS,initialState,availableQuests,choose};
+root.PokellmAdventure=api;
+if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof globalThis!=="undefined"?globalThis:this);
