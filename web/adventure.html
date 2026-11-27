@@ -1,8 +1,132 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10172b"><title>POKÉLLM — Adventure Quests</title><style>
-:root{color-scheme:dark;--bg:#10172b;--panel:#1a2540;--ink:#f4f7ff;--muted:#b8c6e3}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#263a69,var(--bg) 65%);color:var(--ink);font:18px/1.5 system-ui,sans-serif}main{max-width:850px;margin:auto;padding:16px}header{text-align:center;padding:12px}h1{font-size:clamp(2rem,7vw,3rem);margin:0}.panel{background:linear-gradient(145deg,#202f51,#17223b);border:1px solid #425985;border-radius:20px;padding:16px;margin:14px 0}button{font:700 1rem/1.3 system-ui,sans-serif;color:white;background:#254b86;border:2px solid #7296d2;border-radius:14px;min-height:62px;padding:12px 16px;cursor:pointer;text-align:left;width:100%;margin:6px 0}button:focus-visible{outline:4px solid white;outline-offset:3px}button:disabled{opacity:.45}.muted{color:var(--muted)}.stats{display:flex;gap:18px;flex-wrap:wrap;font-weight:800}.area{display:inline-block;background:#101a30;border:1px solid #425985;border-radius:12px;padding:10px;margin:5px}.log{background:#0c1426;border-radius:12px;padding:12px;min-height:75px;white-space:pre-wrap}a{color:#a8d3ff}footer{text-align:center;color:var(--muted);padding:14px}</style></head><body><main><header><h1>🧭 POKÉLLM Adventure</h1><p class="muted">Explore new places, solve quests, and grow your team.</p></header>
-<section class="panel"><div class="stats"><span id="coins">🪙 0 coins</span><span id="xp">✨ 0 XP</span><span id="done">📜 0 quests complete</span></div><p class="muted">Your coins and experience are earned through quests. No wagering or currency losses. Creature progress is never removed by an adventure.</p></section>
-<section class="panel"><h2>🌍 World map</h2><div id="map"></div></section><section class="panel"><h2>📜 Available quests</h2><div id="quests"></div></section><section class="panel"><h2>📖 Adventure journal</h2><div id="log" class="log" aria-live="polite"></div></section><footer><a href="index.html">← Return to creature battles</a></footer></main><script src="adventure.js"></script><script>
-"use strict";const $=id=>document.getElementById(id);let state=PokellmAdventure.initialState();
-function render(){ $("coins").textContent="🪙 "+state.coins+" coins";$("xp").textContent="✨ "+state.experience+" XP";$("done").textContent="📜 "+state.completed.length+" quests complete";$("map").replaceChildren(...PokellmAdventure.AREAS.map(a=>{const s=document.createElement("span");s.className="area";s.textContent=a.name+(state.unlocked.includes(a.id)?" · Unlocked":" · 🔒 Locked");return s}));$("quests").replaceChildren();const qs=PokellmAdventure.availableQuests(state);if(!qs.length){$("quests").textContent="All currently available quests are complete. More adventures can be added.";return}for(const q of qs){const article=document.createElement("div");const h=document.createElement("h3");h.textContent=q.title+" · "+q.area;const p=document.createElement("p");p.textContent=q.task;article.append(h,p);q.choices.forEach((c,i)=>{const b=document.createElement("button");b.textContent=c.label+" · Reward: "+c.reward+" coins";b.addEventListener("click",()=>{state=PokellmAdventure.choose(state,q.id,i);render()});article.append(b)});$("quests").append(article)}$("log").textContent=state.log.slice(-8).join("\n")}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10172b">
+<title>POKÉLLM — Adventure Quests</title>
+<style>
+:root{color-scheme:dark;--bg:#10172b;--panel:#1a2540;--ink:#f4f7ff;--muted:#c3cde1;--focus:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 50% 0,#263a69,var(--bg) 65%);color:var(--ink);font:18px/1.55 system-ui,sans-serif}
+main{max-width:900px;margin:auto;padding:16px}
+header{text-align:center;padding:14px 8px}
+h1{font-size:clamp(2rem,7vw,3rem);line-height:1.15;margin:0}
+h2{font-size:1.45rem;margin-top:0}
+.panel{background:linear-gradient(145deg,#202f51,#17223b);border:1px solid #526b9a;border-radius:20px;padding:18px;margin:16px 0}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font-weight:800;font-size:1.05rem}
+.muted{color:var(--muted)}
+button{font:700 1rem/1.35 system-ui,sans-serif;color:white;background:#254b86;border:2px solid #8aa9dc;border-radius:14px;min-height:64px;padding:13px 16px;cursor:pointer;text-align:left;width:100%;margin:7px 0}
+button:focus-visible,textarea:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.area{display:inline-block;background:#101a30;border:1px solid #607aa8;border-radius:12px;padding:11px;margin:5px}
+.log{background:#0c1426;border-radius:12px;padding:14px;min-height:90px;white-space:pre-wrap}
+#save-status{min-height:1.6em;font-weight:700}
+textarea{width:100%;min-height:130px;padding:12px;border-radius:12px;border:2px solid #607aa8;background:#0c1426;color:var(--ink);font:16px/1.4 ui-monospace,monospace}
+a{color:#b9dcff}footer{text-align:center;color:var(--muted);padding:18px}
+@media(min-width:650px){.save-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.choice-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>🧭 POKÉLLM Adventure</h1>
+<p class="muted">Explore new places, solve quests, and grow your team.</p>
+</header>
+<section class="panel" aria-label="Player progress">
+<div class="stats"><span id="coins">🪙 0 coins</span><span id="xp">✨ 0 XP</span><span id="done">📜 0 quests complete</span></div>
+<p class="muted">Quest rewards are non-redeemable game points. There is no wagering or currency loss. Creature progress is never removed by an adventure.</p>
+</section>
+<section class="panel" aria-labelledby="save-heading">
+<h2 id="save-heading">💾 Save your adventure</h2>
+<p class="muted">Progress saves on this device after each completed quest. Export a backup if you want to move it to another browser or device.</p>
+<p id="save-status" role="status" aria-live="polite">Checking saved progress…</p>
+<div class="save-actions">
+<button id="save-now" type="button">💾 Save progress now</button>
+<button id="restore" type="button">↩️ Restore saved progress</button>
+<button id="export" type="button">📤 Prepare backup text</button>
+<button id="import" type="button">📥 Import backup text</button>
+</div>
+<label for="backup" class="muted">Backup text — copy it somewhere safe, or paste a previous backup here:</label>
+<textarea id="backup" spellcheck="false" autocomplete="off"></textarea>
+</section>
+<section class="panel" aria-labelledby="map-heading"><h2 id="map-heading">🌍 World map</h2><div id="map"></div></section>
+<section class="panel" aria-labelledby="quest-heading"><h2 id="quest-heading">📜 Available quests</h2><div id="quests"></div></section>
+<section class="panel" aria-labelledby="journal-heading"><h2 id="journal-heading">📖 Adventure journal</h2><div id="log" class="log" aria-live="polite"></div></section>
+<footer><a href="index.html">← Return to creature battles</a></footer>
+</main>
+<script src="adventure.js"></script>
+<script src="adventure-save.js"></script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const storage=(()=>{try{return window.localStorage}catch(_){return null}})();
+const fresh=PokellmAdventure.initialState();
+let state=fresh;
+function setStatus(message){$("save-status").textContent=message}
+function loadSaved(){
+ if(!storage){setStatus("Device storage is unavailable. You can still export a backup.");return}
+ const result=PokellmAdventureSave.load(storage);
+ if(result.status==="loaded"){state=result.state;setStatus("Saved progress restored on this device.");}
+ else if(result.status==="missing"){setStatus("No saved adventure yet. Your new progress will save after each quest.");}
+ else{setStatus("A saved file could not be read ("+result.error.code+"). Your current adventure is safe; you can import a backup.");}
+}
+function saveProgress(){
+ if(!storage){setStatus("Save unavailable: this browser does not allow local storage.");return false}
+ try{PokellmAdventureSave.save(state,storage);setStatus("Progress saved on this device.");return true}
+ catch(error){setStatus("Save failed: "+error.message);return false}
+}
+function render(){
+ $("coins").textContent="🪙 "+state.coins+" coins";
+ $("xp").textContent="✨ "+state.experience+" XP";
+ $("done").textContent="📜 "+state.completed.length+" quests complete";
+ $("map").replaceChildren(...PokellmAdventure.AREAS.map(area=>{
+  const item=document.createElement("span");item.className="area";
+  item.textContent=area.name+(state.unlocked.includes(area.id)?" · Unlocked":" · 🔒 Locked");
+  return item;
+ }));
+ $("quests").replaceChildren();
+ const quests=PokellmAdventure.availableQuests(state);
+ if(!quests.length){$("quests").textContent="All current quests are complete. More adventures can be added.";return}
+ for(const quest of quests){
+  const article=document.createElement("article");
+  const heading=document.createElement("h3");heading.textContent=quest.title+" · "+quest.area;
+  const description=document.createElement("p");description.textContent=quest.task;
+  const choices=document.createElement("div");choices.className="choice-list";
+  article.append(heading,description,choices);
+  quest.choices.forEach((choice,index)=>{
+   const button=document.createElement("button");
+   button.type="button";
+   button.textContent=choice.label+" · Reward: "+choice.reward+" coins";
+   button.addEventListener("click",()=>{
+    try{state=PokellmAdventure.choose(state,quest.id,index);saveProgress();render();}
+    catch(error){setStatus("Quest could not be completed: "+error.message)}
+   });
+   choices.append(button);
+  });
+  $("quests").append(article);
+ }
+ $("log").textContent=state.log.slice(-12).join("\n");
+}
+$("save-now").addEventListener("click",saveProgress);
+$("restore").addEventListener("click",()=>{
+ if(!storage){setStatus("Restore unavailable: device storage cannot be accessed.");return}
+ const result=PokellmAdventureSave.load(storage);
+ if(result.status==="loaded"){state=result.state;setStatus("Saved progress restored.");render();}
+ else if(result.status==="missing"){setStatus("There is no saved progress on this device.");}
+ else{setStatus("Restore failed: "+result.error.message);}
+});
+$("export").addEventListener("click",()=>{
+ try{$("backup").value=PokellmAdventureSave.exportSave(state);$("backup").focus();$("backup").select();setStatus("Backup text prepared. Copy it and keep it somewhere safe.");}
+ catch(error){setStatus("Backup could not be prepared: "+error.message)}
+});
+$("import").addEventListener("click",()=>{
+ if(!storage){setStatus("Import unavailable: device storage cannot be accessed.");return}
+ try{state=PokellmAdventureSave.importSave($("backup").value,storage);setStatus("Backup imported and saved on this device.");render();}
+ catch(error){setStatus("Import failed: "+error.message)}
+});
+loadSaved();
 render();
-</script></body></html>
+</script>
+</body>
+</html>
