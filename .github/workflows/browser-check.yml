@@ -36,4 +36,4 @@ jobs:
           node --check web/poker.js
           node --check /tmp/index.html.js
           node --check /tmp/poker.html.js
-          node --test web/game.test.js web/poker.test.js
+          node --test web/*.test.js
