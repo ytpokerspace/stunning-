@@ -44,3 +44,15 @@ GitHub Actions checks the Python suite and validates browser JavaScript syntax a
 ## License
 
 No license has been assigned. All rights reserved by default; obtain the authors' permission before reuse or redistribution.
+
+
+## PIC 0.1 image cartridges
+
+The `cartridge/` directory contains the initial self-contained PNG cartridge format prototype. It embeds the game manifest, starter definitions, rules, initial save state, and attribution metadata in a standard PNG text chunk. Build and inspect a cartridge with the Python standard-library tool:
+
+```bash
+python cartridge/pic_cartridge.py build POKELLM-PIC-0.1.png
+python cartridge/pic_cartridge.py inspect POKELLM-PIC-0.1.png
+```
+
+The image file carries the data, but ordinary image viewers and LLM vision preprocessing may not expose PNG metadata. Use the decoder for reliable restore and state verification. See [cartridge/README.md](cartridge/README.md) for format boundaries and current licensing status.
