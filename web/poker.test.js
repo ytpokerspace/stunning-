@@ -1,0 +1,13 @@
+"use strict";
+const test=require("node:test");const assert=require("node:assert/strict");
+const P=require("./poker.js");
+const c=(rank,suit)=>({rank,suit,label:String(rank)+suit});
+test("deck contains 52 unique cards",()=>{const d=P.deck();assert.equal(d.length,52);assert.equal(new Set(d.map(x=>x.label)).size,52)});
+test("detects a royal straight flush",()=>{const h=P.evaluateFive([c(14,"♠"),c(13,"♠"),c(12,"♠"),c(11,"♠"),c(10,"♠")]);assert.equal(h.name,"Straight flush");assert.deepEqual(h.tie,[14])});
+test("detects the ace-low wheel straight",()=>{const h=P.evaluateFive([c(14,"♣"),c(2,"♦"),c(3,"♠"),c(4,"♥"),c(5,"♣")]);assert.equal(h.name,"Straight");assert.deepEqual(h.tie,[5])});
+test("detects four of a kind",()=>assert.equal(P.evaluateFive([c(9,"♠"),c(9,"♥"),c(9,"♦"),c(9,"♣"),c(2,"♠")]).name,"Four of a kind"));
+test("detects full house",()=>assert.equal(P.evaluateFive([c(8,"♠"),c(8,"♥"),c(8,"♦"),c(4,"♣"),c(4,"♠")]).name,"Full house"));
+test("compares kickers after matching pairs",()=>{const a=P.evaluateFive([c(10,"♠"),c(10,"♥"),c(14,"♦"),c(8,"♣"),c(3,"♠")]);const b=P.evaluateFive([c(10,"♦"),c(10,"♣"),c(13,"♦"),c(8,"♥"),c(3,"♣")]);assert.equal(P.compare(a,b),1)});
+test("requires exactly five cards for evaluation",()=>assert.throws(()=>P.evaluateFive([c(2,"♠")]),RangeError));
+test("finds the best hand from seven cards",()=>{const seven=[c(14,"♠"),c(13,"♠"),c(12,"♠"),c(11,"♠"),c(10,"♠"),c(2,"♦"),c(3,"♣")];assert.equal(P.bestOfSeven(seven).name,"Straight flush")});
+test("deals distinct hole and community cards",()=>{const h=P.deal(()=>0.5);const all=h.player.concat(h.rival,h.community);assert.equal(all.length,9);assert.equal(new Set(all.map(x=>x.label)).size,9)});

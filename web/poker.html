@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10172b"><title>POKÉLLM — Poker Skill Arena</title>
+<style>
+:root{color-scheme:dark;--bg:#10172b;--panel:#1a2540;--ink:#f4f7ff;--muted:#b8c6e3}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#263a69,var(--bg) 65%);color:var(--ink);font:18px/1.45 system-ui,sans-serif}
+main{max-width:900px;margin:auto;padding:16px}header{text-align:center;padding:12px}h1{font-size:clamp(2rem,7vw,3rem);margin:0}.panel{background:linear-gradient(145deg,#202f51,#17223b);border:1px solid #425985;border-radius:20px;padding:16px;margin:14px 0}h2{font-size:1.3rem;margin:0 0 10px}
+button{font:700 1rem/1.2 system-ui,sans-serif;color:white;background:#254b86;border:2px solid #7296d2;border-radius:14px;min-height:60px;padding:12px 18px;cursor:pointer}button:focus-visible{outline:4px solid white;outline-offset:3px}button:disabled{opacity:.45}
+.cards{display:flex;flex-wrap:wrap;gap:10px}.card{background:#f8fafc;color:#111827;border:3px solid #cbd5e1;border-radius:13px;width:clamp(62px,12vw,92px);height:clamp(92px,17vw,132px);display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:800;font-size:1.5rem;cursor:pointer}.card.red{color:#c62828}.card.selected{outline:4px solid #f5d56e;transform:translateY(-3px)}.card small{font-size:.72rem;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}.muted{color:var(--muted)}.status{font-size:1.1rem;font-weight:700}.score{font-size:1.3rem;font-weight:800}.notice{background:#0c1426;border-radius:12px;padding:12px;min-height:64px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}footer{text-align:center;color:var(--muted);font-size:.85rem;padding:12px}a{color:#a8d3ff}
+@media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
+</style></head><body><main><header><h1>🂡 POKÉLLM Poker Skill Arena 🂱</h1><p class="muted">Texas Hold’em-style hand challenge · no betting</p></header>
+<section class="panel"><div class="row"><div><div class="muted">Lifetime skill points</div><div class="score" id="score">0 ⭐</div></div><button id="deal">🃏 Deal a new hand</button></div><p class="muted">Choose the strongest five-card hand from your seven cards. The computer opponent also makes its best five-card hand. Earn points for hand strength and winning. Points cannot be lost, bought, transferred, or redeemed.</p></section>
+<section class="panel"><h2>🌐 Community cards</h2><div class="cards" id="community" aria-label="Community cards"></div></section>
+<div class="grid"><section class="panel"><h2>🧑 Your seven cards</h2><p class="muted">Tap exactly five cards to build your hand.</p><div class="cards" id="player"></div><p class="status" id="selection">0 of 5 selected</p><button id="submit" disabled>🏆 Evaluate my hand</button></section>
+<section class="panel"><h2>🤖 Computer opponent</h2><p class="muted">The opponent's cards are revealed after you submit.</p><div class="cards" id="rival"></div><div id="rivalResult" class="status">Waiting for your decision</div></section></div>
+<section class="panel"><h2>📊 Round result</h2><div id="result" class="notice" role="status" aria-live="polite">Deal a hand to begin. There are no bets or currency losses.</div></section>
+<footer>Practice points are non-purchasable, non-transferable, and have no cash value. <a href="index.html">Return to creature battles</a>.</footer>
+</main><script src="poker.js"></script><script>
+"use strict";
+const $=id=>document.getElementById(id);let hand=null,selected=new Set(),score=0,finished=true;
+function cardNode(c,chosen,click){const b=document.createElement("button");b.type="button";b.className="card"+("♥♦".includes(c.suit)?" red":"")+(chosen?" selected":"");b.textContent=c.label;b.setAttribute("aria-pressed",String(chosen));b.addEventListener("click",click);return b}
+function render(){ $("community").replaceChildren(...hand.community.map(c=>cardNode(c,false,()=>{})));$("player").replaceChildren(...hand.player.concat(hand.community).map((c,i)=>cardNode(c,selected.has(i),()=>{if(finished)return;if(selected.has(i))selected.delete(i);else if(selected.size<5)selected.add(i);renderPlayer()})));renderPlayer();$("score").textContent=score+" ⭐";}
+function renderPlayer(){$("player").querySelectorAll("button").forEach((b,i)=>{b.classList.toggle("selected",selected.has(i));b.setAttribute("aria-pressed",String(selected.has(i)))});$("selection").textContent=selected.size+" of 5 selected";$("submit").disabled=selected.size!==5||finished}
+function start(){hand=PokellmPoker.deal();selected=new Set();finished=false;$("rival").replaceChildren();$("rivalResult").textContent="Waiting for your decision";$("result").textContent="Select five cards, then evaluate your hand.";render()}
+$("deal").addEventListener("click",start);
+$("submit").addEventListener("click",()=>{if(!hand||selected.size!==5||finished)return;const seven=hand.player.concat(hand.community),mine=PokellmPoker.evaluateFive([...selected].map(i=>seven[i])),theirs=PokellmPoker.bestOfSeven(hand.rival.concat(hand.community));const cmp=PokellmPoker.compare(mine,theirs);const earned=mine.category+1+(cmp>0?5:cmp===0?2:0);score+=earned;finished=true;$("rival").replaceChildren(...hand.rival.concat(hand.community).map(c=>cardNode(c,false,()=>{})));$("rivalResult").textContent=theirs.name;$("result").textContent="You: "+mine.name+" · Opponent: "+theirs.name+" · "+(cmp>0?"You win!":cmp===0?"Tie game.":"Opponent wins this round.")+" You earned "+earned+" skill points. Your score never decreases.";renderPlayer();$("score").textContent=score+" ⭐";});
+start();
+</script></body></html>
