@@ -36,5 +36,6 @@ jobs:
           PY
           node --check web/adventure.js
           node --check web/adventure-save.js
+          node --check web/pixel-cartridge.js
           node --check /tmp/adventure.html.js
           node --test web/*.test.js
